@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/brutella/dnssd"
 	"log"
-	"net"
 	"os"
 	"os/signal"
 	"strings"
