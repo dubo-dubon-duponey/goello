@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/brutella/dnssd"
-	slog "log"
+	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -17,10 +17,10 @@ var instanceFlag = flag.String("name", "Service", "Service name")
 var serviceFlag = flag.String("type", "_asdf._tcp", "Service type")
 var domainFlag = flag.String("domain", "local", "domain")
 var portFlag = flag.Int("port", 12345, "Port")
-var hostFlag = flag.String("host", "hostname", "Host")
-var ipFlag = flag.String("ip", "127.0.0.1", "Ip")
 
 var timeFormat = "15:04:05.000"
+
+var hostFlag = flag.String("host", "", "Host")
 
 func main() {
 	flag.Parse()
@@ -51,15 +51,10 @@ func main() {
 		if *hostFlag != "" {
 			cfg.Host = *hostFlag
 		}
-		if *ipFlag != "" {
-			cfg.IPs = []net.IP{
-				net.ParseIP(*ipFlag),
-			}
-		}
 
 		srv, err := dnssd.NewService(cfg)
 		if err != nil {
-			slog.Fatal(err)
+			log.Fatal(err)
 		}
 
 		go func() {
