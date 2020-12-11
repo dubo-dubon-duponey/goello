@@ -1,8 +1,8 @@
-// Command resolve resolves a dns-sd service instance.
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/brutella/dnssd"
@@ -12,32 +12,24 @@ import (
 	"time"
 )
 
-var instanceFlag = flag.String("Name", "PowaCroquette", "Service Name")
-var serviceFlag = flag.String("Type", "_http._tcp", "Service type")
-var domainFlag = flag.String("Domain", "local", "Browsing domain")
-
-var timeFormat = "15:04:05.000"
+var instanceFlag = flag.String("n", "croquette", "Service Name")
+var serviceFlag = flag.String("t", "_http._tcp", "Service type")
+var domainFlag = flag.String("d", "local", "Browsing domain")
 
 func main() {
 	flag.Parse()
-	if len(*instanceFlag) == 0 || len(*serviceFlag) == 0 || len(*domainFlag) == 0 {
-		flag.Usage()
-		return
-	}
+
 	service := fmt.Sprintf("%s.%s.", strings.Trim(*serviceFlag, "."), strings.Trim(*domainFlag, "."))
 	instance := fmt.Sprintf("%s.%s.%s.", strings.Trim(*instanceFlag, "."), strings.Trim(*serviceFlag, "."), strings.Trim(*domainFlag, "."))
 
-	fmt.Printf("Lookup %s\n", instance)
-	fmt.Printf("DATE: –––%s–––\n", time.Now().Format("Mon Jan 2 2006"))
-	fmt.Printf("%s	...STARTING...\n", time.Now().Format(timeFormat))
-
 	addFn := func(srv dnssd.Service) {
 		if srv.ServiceInstanceName() == instance {
-			text := ""
-			for key, value := range srv.Text {
-				text += fmt.Sprintf("%s=%s", key, value)
-			}
-			fmt.Printf("%s	%s can be reached at %s:%d\n	%v\n", time.Now().Format(timeFormat), srv.ServiceInstanceName(), srv.Hostname(), srv.Port, text)
+			j, _ := json.Marshal(srv)
+
+			fmt.Println(string(j))
+
+			time.Sleep(1)
+			os.Exit(0)
 		}
 	}
 
@@ -57,26 +49,3 @@ func main() {
 		cancel()
 	}
 }
-
-/*
-package main
-
-import (
-	"fmt"
-	"github.com/hashicorp/mdns"
-)
-
-func main() {
-	// Make a channel for results and start listening
-	entriesCh := make(chan *mdns.ServiceEntry, 4)
-	go func() {
-		for entry := range entriesCh {
-			fmt.Printf("Got new entry: %v\n", entry)
-		}
-	}()
-
-	// Start the lookup
-	mdns.Lookup("_http._tcp", entriesCh)
-	close(entriesCh)
-}
-*/
