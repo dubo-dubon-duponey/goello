@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/brutella/dnssd"
+	"net"
 	"os"
 	"os/signal"
 	"strings"
@@ -15,9 +16,22 @@ import (
 var instanceFlag = flag.String("n", "croquette", "Service Name")
 var serviceFlag = flag.String("t", "_http._tcp", "Service type")
 var domainFlag = flag.String("d", "local", "Browsing domain")
+var modeFlag = flag.String("m", "brute", "Resolution mode (brute or vanilla)")
 
 func main() {
 	flag.Parse()
+
+	if (*modeFlag == "vanilla") {
+    dom := fmt.Sprintf("%s.%s", strings.Trim(*instanceFlag, "."), strings.Trim(*domainFlag, "."))
+    ips, err := net.LookupIP(dom)
+    if err != nil {
+      fmt.Printf("FATAL: %s: %s", dom, err)
+      os.Exit(1)
+    }
+    jj, _ := json.Marshal(ips)
+    fmt.Printf(string(jj))
+    return
+  }
 
 	service := fmt.Sprintf("%s.%s.", strings.Trim(*serviceFlag, "."), strings.Trim(*domainFlag, "."))
 	instance := fmt.Sprintf("%s.%s.%s.", strings.Trim(*instanceFlag, "."), strings.Trim(*serviceFlag, "."), strings.Trim(*domainFlag, "."))
