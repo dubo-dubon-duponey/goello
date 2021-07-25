@@ -21,8 +21,18 @@ var timeFormat = "15:04:05.000"
 
 var hostFlag = flag.String("host", "", "Host")
 
+var (
+	version = flag.Bool("version", false,"print version")
+)
+
 func main() {
 	flag.Parse()
+
+	if *version != false {
+		fmt.Println("unversioned")
+		os.Exit(0)
+	}
+
 	if len(*instanceFlag) == 0 || len(*serviceFlag) == 0 || len(*domainFlag) == 0 {
 		flag.Usage()
 		return

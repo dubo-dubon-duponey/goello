@@ -17,6 +17,11 @@ var serviceFlag = flag.String("t", "_http._tcp", "Service type")
 var domainFlag = flag.String("d", "local.", "Browsing domain")
 var modeFlag = flag.String("m", "brute", "Resolution mode (brute or vanilla)")
 
+
+var (
+	version = flag.Bool("version", false,"print version")
+)
+
 // var debug = flag.Bool("debug", true, "Dump")
 
 func vanilla() {
@@ -36,6 +41,11 @@ var timeFormat = "15:04:05.000"
 
 func main() {
 	flag.Parse()
+
+	if *version != false {
+		fmt.Println("unversioned")
+		os.Exit(0)
+	}
 
 	if len(*instanceFlag) == 0 || len(*serviceFlag) == 0 || len(*domainFlag) == 0 {
 		flag.Usage()
