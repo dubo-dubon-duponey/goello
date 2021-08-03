@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/brutella/dnssd"
@@ -17,12 +18,14 @@ var serviceFlag = flag.String("type", "_asdf._tcp", "Service type")
 var domainFlag = flag.String("domain", "local", "domain")
 var portFlag = flag.Int("port", 12345, "Port")
 
+var txtFlag = flag.String("txt", "", "{\"key\": \"record\"}")
+
 var timeFormat = "15:04:05.000"
 
 var hostFlag = flag.String("host", "", "Host")
 
 var (
-	version = flag.Bool("version", false,"print version")
+	version = flag.Bool("version", false, "print version")
 )
 
 func main() {
@@ -50,11 +53,22 @@ func main() {
 	if resp, err := dnssd.NewResponder(); err != nil {
 		fmt.Println(err)
 	} else {
+
 		cfg := dnssd.Config{
 			Name:   *instanceFlag,
 			Type:   *serviceFlag,
 			Domain: *domainFlag,
 			Port:   *portFlag,
+		}
+
+		if *txtFlag != "" {
+			var objmap map[string]string
+			err := json.Unmarshal([]byte(*txtFlag), &objmap)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			cfg.Text = objmap
 		}
 
 		if *hostFlag != "" {

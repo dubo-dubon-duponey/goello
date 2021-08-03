@@ -17,9 +17,8 @@ var serviceFlag = flag.String("t", "_http._tcp", "Service type")
 var domainFlag = flag.String("d", "local.", "Browsing domain")
 var modeFlag = flag.String("m", "brute", "Resolution mode (brute or vanilla)")
 
-
 var (
-	version = flag.Bool("version", false,"print version")
+	version = flag.Bool("version", false, "print version")
 )
 
 // var debug = flag.Bool("debug", true, "Dump")
