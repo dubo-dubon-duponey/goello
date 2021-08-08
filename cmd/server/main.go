@@ -8,78 +8,50 @@ import (
 	"github.com/brutella/dnssd"
 	"log"
 	"os"
-	"os/signal"
-	"strings"
 	"time"
 )
 
-var instanceFlag = flag.String("name", "Service", "Service name")
-var serviceFlag = flag.String("type", "_asdf._tcp", "Service type")
-var domainFlag = flag.String("domain", "local", "domain")
-var portFlag = flag.Int("port", 12345, "Port")
-
-var txtFlag = flag.String("txt", "", "{\"key\": \"record\"}")
+var versionFlag = flag.Bool("version", false, "print version")
+var jsonFlag = flag.String("json", "", "[{\"Type\": \"_http._tcp\", \"Name\": \"Fancy Name\", \"Host\": \"myhost\", \"Port\": 1234, \"Text\": {\"foo\": \"bar\"}}]")
 
 var timeFormat = "15:04:05.000"
-
-var hostFlag = flag.String("host", "", "Host")
-
-var (
-	version = flag.Bool("version", false, "print version")
-)
 
 func main() {
 	flag.Parse()
 
-	if *version != false {
+	// Show version and return if asked for
+	if *versionFlag != false {
 		fmt.Println("unversioned")
 		os.Exit(0)
 	}
 
-	if len(*instanceFlag) == 0 || len(*serviceFlag) == 0 || len(*domainFlag) == 0 {
-		flag.Usage()
-		return
+	// Otherwise parse the json flag and unmarshall into a slice of configs
+	var servicesDeclaration []dnssd.Config
+	err := json.Unmarshal([]byte(*jsonFlag), &servicesDeclaration)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	instance := fmt.Sprintf("%s.%s.%s.", strings.Trim(*instanceFlag, "."), strings.Trim(*serviceFlag, "."), strings.Trim(*domainFlag, "."))
-
-	fmt.Printf("Registering Service %s port %d\n", instance, *portFlag)
-	fmt.Printf("DATE: –––%s–––\n", time.Now().Format("Mon Jan 2 2006"))
-	fmt.Printf("%s	...STARTING...\n", time.Now().Format(timeFormat))
-
+	// Get context
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if resp, err := dnssd.NewResponder(); err != nil {
+	// Get our responder
+	responder, err := dnssd.NewResponder()
+	if err != nil {
 		fmt.Println(err)
-	} else {
+		return
+	}
 
-		cfg := dnssd.Config{
-			Name:   *instanceFlag,
-			Type:   *serviceFlag,
-			Domain: *domainFlag,
-			Port:   *portFlag,
-		}
-
-		if *txtFlag != "" {
-			var objmap map[string]string
-			err := json.Unmarshal([]byte(*txtFlag), &objmap)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			cfg.Text = objmap
-		}
-
-		if *hostFlag != "" {
-			cfg.Host = *hostFlag
-		}
-
-		srv, err := dnssd.NewService(cfg)
+	var services []dnssd.Service
+	for _, serviceConfig := range servicesDeclaration {
+		srv, err := dnssd.NewService(serviceConfig)
 		if err != nil {
 			log.Fatal(err)
 		}
-
+		services = append(services, srv)
+	}
+	/*
 		go func() {
 			stop := make(chan os.Signal, 1)
 			signal.Notify(stop, os.Interrupt)
@@ -89,20 +61,23 @@ func main() {
 				cancel()
 			}
 		}()
+	*/
 
-		go func() {
-			time.Sleep(1 * time.Second)
-			handle, err := resp.Add(srv)
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				fmt.Printf("%s	Got a reply for service %s: Name now registered and active\n", time.Now().Format(timeFormat), handle.Service().ServiceInstanceName())
-			}
-		}()
-		err = resp.Respond(ctx)
-
+	// Register our services to the repsonder
+	for _, srv := range services {
+		fmt.Printf("Gonna register %s\n", srv.Name)
+		time.Sleep(1 * time.Second)
+		handle, err := responder.Add(srv)
 		if err != nil {
 			fmt.Println(err)
+		} else {
+			fmt.Printf("%s	Got a reply for service %s: Name now registered and active\n", time.Now().Format(timeFormat), handle.Service().ServiceInstanceName())
 		}
+	}
+
+	err = responder.Respond(ctx)
+
+	if err != nil {
+		log.Fatal(err)
 	}
 }
