@@ -13,6 +13,7 @@ vet:
 build:
 	go build -v -ldflags "-s -w" -o dist/goello-client ./cmd/client/main.go
 	go build -v -ldflags "-s -w" -o dist/goello-server ./cmd/server/main.go
+	go build -v -ldflags "-s -w" -o dist/goello-server-ng ./cmd/ng/main.go
 
 .PHONY: all
 all: fmt vet build
