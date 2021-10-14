@@ -6,11 +6,14 @@ go 1.17
 
 require (
 	github.com/brutella/dnssd v1.2.0
-	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/grandcat/zeroconf v1.0.1-0.20210929195321-a393c0e41e54
 	github.com/miekg/dns v1.1.43
-	github.com/pion/logging v0.2.2 // indirect
 	github.com/pion/mdns v0.0.5
-	golang.org/x/net v0.0.0-20210423184538-5f58ad60dda6
+	golang.org/x/net v0.0.0-20211013171255-e13a2654a71e
+)
+
+require (
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/pion/logging v0.2.2 // indirect
 	golang.org/x/sys v0.0.0-20210426080607-c94f62235c83 // indirect
 )
